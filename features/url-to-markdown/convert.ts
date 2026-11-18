@@ -15,6 +15,20 @@ export class ConvertError extends Error {
 
 const FETCH_TIMEOUT_MS = 15_000;
 
+// EUC-KR 등 UTF-8이 아닌 페이지가 깨지지 않도록 헤더와 meta의 charset으로 디코딩한다.
+function decodeHtml(buffer: ArrayBuffer, contentType: string | null): string {
+  const head = new TextDecoder("latin1").decode(buffer.slice(0, 2048));
+  const charset =
+    /charset=["']?([\w-]+)/i.exec(contentType ?? "")?.[1] ??
+    /<meta[^>]+charset=["']?([\w-]+)/i.exec(head)?.[1] ??
+    "utf-8";
+  try {
+    return new TextDecoder(charset).decode(buffer);
+  } catch {
+    return new TextDecoder("utf-8").decode(buffer);
+  }
+}
+
 export async function convertUrl(url: string): Promise<Article> {
   let response: Response;
   try {
@@ -41,7 +55,7 @@ export async function convertUrl(url: string): Promise<Article> {
     );
   }
 
-  const html = await response.text();
+  const html = decodeHtml(await response.arrayBuffer(), response.headers.get("content-type"));
   const { document } = parseHTML(html);
   const result = await Defuddle(document as unknown as Document, response.url || url, {
     markdown: true,
