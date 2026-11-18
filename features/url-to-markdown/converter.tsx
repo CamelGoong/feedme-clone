@@ -37,7 +37,7 @@ const INVALID_URL_ERROR: ErrorInfo = {
   description: "“https://”로 시작하는 웹 페이지 주소를 입력해 주세요.",
 };
 
-export function Converter() {
+export function Converter({ headerActions }: { headerActions?: React.ReactNode }) {
   const [input, setInput] = useState("");
   const [state, setState] = useState<State>({ status: "idle" });
 
@@ -78,7 +78,10 @@ export function Converter() {
           </span>
           FeedMe
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          {headerActions}
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex flex-col gap-1.5">
