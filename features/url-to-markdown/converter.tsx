@@ -4,7 +4,7 @@ import { CircleAlertIcon, FileTextIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Empty,
   EmptyDescription,
@@ -14,10 +14,8 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { type Article, hostnameOf, normalizeUrl } from "./export";
-import { ExportPanel } from "./export-panel";
-import { MarkdownView } from "./markdown-view";
-import { ThemeToggle } from "./theme-toggle";
+import { ArticleView } from "./article-view";
+import { type Article, normalizeUrl } from "./export";
 import { UrlForm } from "./url-form";
 
 type ErrorInfo = { title: string; description: string };
@@ -37,7 +35,12 @@ const INVALID_URL_ERROR: ErrorInfo = {
   description: "“https://”로 시작하는 웹 페이지 주소를 입력해 주세요.",
 };
 
-export function Converter({ headerActions }: { headerActions?: React.ReactNode }) {
+// `renderActions` adds controls above the export panel for the current result.
+export function Converter({
+  renderActions,
+}: {
+  renderActions?: (article: Article) => React.ReactNode;
+}) {
   const [input, setInput] = useState("");
   const [state, setState] = useState<State>({ status: "idle" });
 
@@ -70,20 +73,7 @@ export function Converter({ headerActions }: { headerActions?: React.ReactNode }
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-12 sm:px-6">
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[15px] font-semibold">
-          <span className="grid size-6.5 place-items-center rounded-md bg-primary font-mono text-[13px] text-primary-foreground">
-            M↓
-          </span>
-          FeedMe
-        </div>
-        <div className="flex items-center gap-1">
-          {headerActions}
-          <ThemeToggle />
-        </div>
-      </header>
-
+    <>
       <div className="flex flex-col gap-1.5">
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-[28px]">
           웹 페이지를 Markdown으로
@@ -135,59 +125,8 @@ export function Converter({ headerActions }: { headerActions?: React.ReactNode }
       )}
 
       {state.status === "result" && (
-        <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:items-start">
-          <article className="order-2 min-w-0 md:order-1">
-            <Card className="gap-0 py-0">
-              <CardHeader className="border-b py-4">
-                <CardTitle className="text-xl leading-snug font-semibold wrap-anywhere">
-                  {state.article.title}
-                </CardTitle>
-                <ArticleMeta article={state.article} />
-              </CardHeader>
-              <CardContent className="py-5">
-                <MarkdownView markdown={state.article.markdown} />
-              </CardContent>
-            </Card>
-          </article>
-          <div className="order-1 md:sticky md:top-4 md:order-2">
-            <ExportPanel key={state.article.url} article={state.article} />
-          </div>
-        </div>
+        <ArticleView article={state.article} actions={renderActions?.(state.article)} />
       )}
-    </div>
-  );
-}
-
-function formatPublished(value: string) {
-  const date = new Date(value);
-  if (!value || Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("ko-KR", { dateStyle: "long", timeZone: "UTC" });
-}
-
-function ArticleMeta({ article }: { article: Article }) {
-  const host = hostnameOf(article.url);
-  const parts = [
-    article.author,
-    article.site !== article.author && article.site !== host ? article.site : "",
-    formatPublished(article.published),
-  ].filter(Boolean);
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
-      {parts.map((part, index) => (
-        <span key={index} className="flex items-center gap-2">
-          {index > 0 && <span aria-hidden>·</span>}
-          {part}
-        </span>
-      ))}
-      <span aria-hidden>·</span>
-      <a
-        href={article.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="wrap-anywhere underline-offset-3 hover:underline"
-      >
-        {host}
-      </a>
-    </div>
+    </>
   );
 }
