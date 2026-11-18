@@ -43,7 +43,7 @@ export function buildExportMarkdown(article: Article): string {
 }
 
 export function buildFileName(article: Article): string {
-  const base = article.title.replace(/[\/:*?"<>|]/g, "").trim().slice(0, 80);
+  const base = article.title.replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 80);
   return `${base || hostnameOf(article.url)}.md`;
 }
 

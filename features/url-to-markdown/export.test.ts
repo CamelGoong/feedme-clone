@@ -34,6 +34,7 @@ test("내보내는 Markdown은 제목과 원문 주소를 맨 앞에 붙인다",
 
 test("파일 이름은 금지 문자를 빼고, 제목이 비면 도메인을 쓴다", () => {
   expect(buildFileName(article)).toBe("제목 테스트.md");
+  expect(buildFileName({ ...article, title: "a\\b" })).toBe("ab.md");
   expect(buildFileName({ ...article, title: "" })).toBe("example.com.md");
 });
 
