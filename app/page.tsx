@@ -1,14 +1,31 @@
+import Link from "next/link";
+
+import { buttonVariants } from "@/components/ui/button";
+import { SiteShell } from "@/components/site-shell";
 import { AccountLink } from "@/features/auth/account-link";
-import { Converter } from "@/features/url-to-markdown/converter";
 import { createClient } from "@/lib/supabase/server";
+
+import { HomeConverter } from "./home-converter";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
+  const signedIn = !!data?.claims;
 
   return (
-    <main className="flex flex-1 flex-col">
-      <Converter headerActions={<AccountLink signedIn={!!data?.claims} />} />
-    </main>
+    <SiteShell
+      headerActions={
+        <>
+          {signedIn && (
+            <Link href="/articles" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              저장한 글
+            </Link>
+          )}
+          <AccountLink signedIn={signedIn} />
+        </>
+      }
+    >
+      <HomeConverter signedIn={signedIn} />
+    </SiteShell>
   );
 }
